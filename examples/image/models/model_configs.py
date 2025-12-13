@@ -47,9 +47,9 @@ MODEL_CONFIGS = {
     },
     "cifar10": {
         "in_channels": 3,
-        "model_channels": 128,
+        "model_channels": 64,
         "out_channels": 3,
-        "num_res_blocks": 4,
+        "num_res_blocks": 2,
         "attention_resolutions": [2],
         "dropout": 0.3,
         "channel_mult": [2, 2, 2],
@@ -90,9 +90,9 @@ MODEL_CONFIGS = {
         "input_size": 32,      
         "patch_size": 2,       
         "in_channels": 3,      
-        "hidden_size": 768,    
+        "hidden_size": 384,    
         "depth": 12,           
-        "num_heads": 12,
+        "num_heads": 6,
         "mlp_ratio": 4.0,
         "class_dropout_prob": 0.1,
         "num_classes": 10,     # For CIFAR-10

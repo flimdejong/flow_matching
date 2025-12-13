@@ -209,5 +209,12 @@ def get_args_parser():
         type=int,
         help="Number of sampling steps for discrete FM.",
     )
+    parser.add_argument(
+        "--loss_type",
+        default="flow_matching",
+        choices=["flow_matching", "ddpm"],
+        type=str,
+        help="Type of loss to use for training: 'flow_matching' (default) or 'ddpm'.",
+    )
 
     return parser
