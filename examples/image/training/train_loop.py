@@ -100,12 +100,22 @@ def train_one_epoch(
                     loss = torch.pow(model(x_t, t, y=conditioning) - u_t, 2).mean()
 
             elif args.loss_type == "DDPM":
+                t = torch.torch.rand(samples.shape[0]).to(device)
                 
+                # Define a scheduler
+                s = 0.008
+                T = 1.0
+                a = (t/T+s)/(1+s) 
+                alpha_bar = torch.cos(a*(math.pi/2))**2
+                alpha_bar = alpha_bar.view(-1, 1, 1, 1)
 
+                # Implement forward process
+                x_t = torch.sqrt(alpha_bar)*samples + torch.sqrt(1-alpha_bar)*noise
 
-
-
-
+                # Loss function should lower the noise loss
+                with torch.cuda.amp.autocast():
+                    model_output = model(x_t, t, y=conditioning)
+                    loss = ((noise - model_output)**2).mean()
 
 
         loss_value = loss.item()
