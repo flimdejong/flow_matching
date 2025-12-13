@@ -82,19 +82,31 @@ def train_one_epoch(
                 logits.reshape([-1, 257]), samples.reshape([-1])
             ).mean()
         else:
+            # This handles the continuous pipeline, here we add a possibility for using DDPM loss.
             # Scaling to [-1, 1] from [0, 1]
             samples = samples * 2.0 - 1.0
             noise = torch.randn_like(samples).to(device)
-            if args.skewed_timesteps:
-                t = skewed_timestep_sample(samples.shape[0], device=device)
-            else:
-                t = torch.torch.rand(samples.shape[0]).to(device)
-            path_sample = path.sample(t=t, x_0=noise, x_1=samples)
-            x_t = path_sample.x_t
-            u_t = path_sample.dx_t
 
-            with torch.cuda.amp.autocast():
-                loss = torch.pow(model(x_t, t, y=conditioning) - u_t, 2).mean()
+            if args.loss_type =="flow_matching":
+                if args.skewed_timesteps:
+                    t = skewed_timestep_sample(samples.shape[0], device=device)
+                else:
+                    t = torch.torch.rand(samples.shape[0]).to(device)
+                path_sample = path.sample(t=t, x_0=noise, x_1=samples)
+                x_t = path_sample.x_t
+                u_t = path_sample.dx_t
+
+                with torch.cuda.amp.autocast():
+                    loss = torch.pow(model(x_t, t, y=conditioning) - u_t, 2).mean()
+
+            elif args.loss_type == "DDPM":
+                
+
+
+
+
+
+
 
         loss_value = loss.item()
         batch_loss.update(loss)

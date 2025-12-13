@@ -193,7 +193,7 @@ class DiT(nn.Module):
             nn.init.constant_(self.final_layer.linear.weight, 0)
             nn.init.constant_(self.final_layer.linear.bias, 0)
 
-    def forward(self, x, t, y, extra=None):
+    def forward(self, x, t, y=None, extra=None):
         """
         Forward pass of DiT.
         x: (N, C, H, W) tensor of spatial inputs (images or latent representations of images)
