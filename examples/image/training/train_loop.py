@@ -64,6 +64,7 @@ def train_one_epoch(
 
         samples = samples.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
+        conditioning = labels
 
         if args.discrete_flow_matching:
             samples = (samples * 255.0).to(torch.long)
@@ -76,7 +77,7 @@ def train_one_epoch(
             path_sample = path.sample(t=t, x_0=x_0, x_1=samples)
 
             # discrete flow matching loss
-            logits = model(path_sample.x_t, t=t, extra=conditioning)
+            logits = model(path_sample.x_t, t=t, y=conditioning)
             loss = torch.nn.functional.cross_entropy(
                 logits.reshape([-1, 257]), samples.reshape([-1])
             ).mean()
@@ -93,7 +94,7 @@ def train_one_epoch(
             u_t = path_sample.dx_t
 
             with torch.cuda.amp.autocast():
-                loss = torch.pow(model(x_t, t, extra=conditioning) - u_t, 2).mean()
+                loss = torch.pow(model(x_t, t, y=conditioning) - u_t, 2).mean()
 
         loss_value = loss.item()
         batch_loss.update(loss)
