@@ -91,9 +91,10 @@ def main(args):
     # define the model
     logger.info("Initializing Model")
     model = instantiate_model(
-        architechture=args.dataset,
+        architechture=args.model,
         is_discrete=args.discrete_flow_matching,
         use_ema=args.use_ema,
+        num_classes=10 # 10 for CIFAR-10 dataset
     )
 
     model.to(device)

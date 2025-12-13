@@ -65,11 +65,6 @@ def train_one_epoch(
         samples = samples.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
-        if torch.rand(1) < args.class_drop_prob:
-            conditioning = {}
-        else:
-            conditioning = {"label": labels}
-
         if args.discrete_flow_matching:
             samples = (samples * 255.0).to(torch.long)
             t = torch.torch.rand(samples.shape[0]).to(device)

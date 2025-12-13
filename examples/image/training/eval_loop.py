@@ -62,7 +62,7 @@ class CFGScaledModel(ModelWrapper):
         else:
             # Model is fully conditional, no cfg weighting needed
             with torch.cuda.amp.autocast(), torch.no_grad():
-                result = self.model(x, t, extra={"label": label})
+                result = self.model(x, t, y=y)
 
         self.nfe_counter += 1
         if is_discrete:

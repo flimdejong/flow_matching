@@ -8,6 +8,7 @@ from typing import Union
 from models.discrete_unet import DiscreteUNetModel
 from models.ema import EMA
 from models.unet import UNetModel
+from models.DiT import DiT
 
 MODEL_CONFIGS = {
     "imagenet": {
@@ -84,16 +85,27 @@ MODEL_CONFIGS = {
         "use_new_attention_order": True,
         "with_fourier_features": False,
     },
+    "dit": { 
+        # CIFAR-10 Example: 32x32 image, 3 channels, 10 classes
+        "input_size": 32,      
+        "patch_size": 2,       
+        "in_channels": 3,      
+        "hidden_size": 768,    
+        "depth": 12,           
+        "num_heads": 12,
+        "mlp_ratio": 4.0,
+        "class_dropout_prob": 0.1,
+        "num_classes": 10,     # For CIFAR-10
+        "learn_sigma": False,
+    },
 }
 
-
 def instantiate_model(
-    architechture: str, is_discrete: bool, use_ema: bool
+    architechture: str, is_discrete: bool, use_ema: bool, num_classes: int,
 ) -> Union[UNetModel, DiscreteUNetModel]:
     assert (
         architechture in MODEL_CONFIGS
     ), f"Model architecture {architechture} is missing its config."
-
     if is_discrete:
         if architechture + "_discrete" in MODEL_CONFIGS:
             config = MODEL_CONFIGS[architechture + "_discrete"]
@@ -103,6 +115,11 @@ def instantiate_model(
             vocab_size=257,
             **config,
         )
+    elif architechture == "dit":
+        config = MODEL_CONFIGS["dit"]
+        if num_classes is not None:
+            config["num_classes"] = num_classes
+        model = DiT(**config)
     else:
         model = UNetModel(**MODEL_CONFIGS[architechture])
 

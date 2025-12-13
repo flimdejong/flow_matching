@@ -84,6 +84,13 @@ def get_args_parser():
         type=str,
         help="imagenet root folder with train, val and test subfolders",
     )
+    parser.add_argument(
+        "--model",
+        default="dit",
+        type=str,
+        choices=list(MODEL_CONFIGS.keys()),
+        help="Model architecture to use (DiT, UNet).",
+    )
 
     parser.add_argument(
         "--output_dir",
