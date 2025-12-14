@@ -99,7 +99,7 @@ def train_one_epoch(
                 with torch.cuda.amp.autocast():
                     loss = torch.pow(model(x_t, t, y=conditioning) - u_t, 2).mean()
 
-            elif args.loss_type == "DDPM":
+            elif args.loss_type == "ddpm":
                 t = torch.rand(samples.shape[0]).to(device)
                 
                 # Define a scheduler

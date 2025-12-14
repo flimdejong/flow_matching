@@ -174,7 +174,7 @@ def eval_model(
                         synthetic_samples * 0.5 + 0.5, min=0.0, max=1.0
                     )
                     synthetic_samples = torch.floor(synthetic_samples * 255)
-                elif args.loss_type == "DDPM":
+                elif args.loss_type == "ddpm":
 
                     def get_alpha_bar(t):
                         s = 0.008
