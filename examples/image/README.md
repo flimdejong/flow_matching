@@ -75,3 +75,5 @@ Deng, Jia, et al. "Imagenet: A large-scale hierarchical image database." 2009 IE
 Karras, Tero, et al. "Elucidating the design space of diffusion-based generative models." Advances in neural information processing systems 35 (2022): 26565-26577.
 
 Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional networks for biomedical image segmentation." Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18. Springer International Publishing, 2015.
+
+python3 train.py --model dit --dataset cifar10 --epochs 40 --eval_frequency 10

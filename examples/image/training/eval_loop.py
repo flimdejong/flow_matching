@@ -9,6 +9,7 @@ import os
 from argparse import Namespace
 from pathlib import Path
 from typing import Iterable
+import math
 
 import PIL.Image
 
@@ -148,30 +149,73 @@ def eval_model(
                 # Continuous sampling
                 x_0 = torch.randn(samples.shape, dtype=torch.float32, device=device)
 
-                if args.edm_schedule:
-                    time_grid = get_time_discretization(nfes=ode_opts["nfe"])
-                else:
-                    time_grid = torch.tensor([0.0, 1.0], device=device)
+                if args.loss_type == "flow_matching":
+                    if args.edm_schedule:
+                        time_grid = get_time_discretization(nfes=ode_opts["nfe"])
+                    else:
+                        time_grid = torch.tensor([0.0, 1.0], device=device)
 
-                synthetic_samples = solver.sample(
-                    time_grid=time_grid,
-                    x_init=x_0,
-                    method=args.ode_method,
-                    return_intermediates=False,
-                    atol=ode_opts["atol"] if "atol" in ode_opts else 1e-5,
-                    rtol=ode_opts["rtol"] if "atol" in ode_opts else 1e-5,
-                    step_size=ode_opts["step_size"]
-                    if "step_size" in ode_opts
-                    else None,
-                    label=labels,
-                    cfg_scale=args.cfg_scale,
-                )
+                    synthetic_samples = solver.sample(
+                        time_grid=time_grid,
+                        x_init=x_0,
+                        method=args.ode_method,
+                        return_intermediates=False,
+                        atol=ode_opts["atol"] if "atol" in ode_opts else 1e-5,
+                        rtol=ode_opts["rtol"] if "atol" in ode_opts else 1e-5,
+                        step_size=ode_opts["step_size"]
+                        if "step_size" in ode_opts
+                        else None,
+                        label=labels,
+                        cfg_scale=args.cfg_scale,
+                    )
 
-                # Scaling to [0, 1] from [-1, 1]
-                synthetic_samples = torch.clamp(
-                    synthetic_samples * 0.5 + 0.5, min=0.0, max=1.0
-                )
-                synthetic_samples = torch.floor(synthetic_samples * 255)
+                    # Scaling to [0, 1] from [-1, 1]
+                    synthetic_samples = torch.clamp(
+                        synthetic_samples * 0.5 + 0.5, min=0.0, max=1.0
+                    )
+                    synthetic_samples = torch.floor(synthetic_samples * 255)
+                elif args.loss_type == "DDPM":
+
+                    def get_alpha_bar(t):
+                        s = 0.008
+                        alpha_bar = torch.cos(((t + s) / (1 + s)) * (math.pi / 2)) ** 2
+                        return alpha_bar
+                    
+                    # In DDPM we have to make a NN (this case a DiT) predict the noise
+                    # So we start from pure noise, then iteratively denoise
+                    num_steps = 250
+                    timesteps = torch.linspace(1, 0, num_steps+1).to(device) # (1.0, 0.995 etc...)
+
+                    # Start from random noise
+                    x_t = torch.randn(samples.shape, device=device)
+
+                    for t in range(num_steps):
+                        t_curr = timesteps[t]
+                        t_next = timesteps[t+1]
+
+                        # Calculate schedule
+                        ab_curr = get_alpha_bar(t_curr)
+                        ab_next = get_alpha_bar(t_next)
+                        alpha = ab_curr / ab_next
+                        beta = 1 - alpha
+
+                        # Predict the noise
+                        t_batch = torch.full((samples.shape[0],), t_curr, device=device)
+                        pred_noise = cfg_scaled_model(x_t, t_batch, args.cfg_scale, labels)
+
+                        # Do not give noise on last step
+                        if t < num_steps-1:
+                            z = torch.randn_like(x_t)
+                        else:
+                            z = 0
+
+                        # Final formula
+                        x_t = 1/torch.sqrt(alpha) * (x_t - (beta/torch.sqrt(1-ab_curr)) * pred_noise) + torch.sqrt(beta)* z
+
+                    # Go from [-1,1] to [0,1] and scale
+                    x_t = (x_t + 1) / 2
+                    synthetic_samples = x_t * 255.0
+            
             synthetic_samples = synthetic_samples.to(torch.float32) / 255.0
             logger.info(
                 f"{samples.shape[0]} samples generated in {cfg_scaled_model.get_nfe()} evaluations."
