@@ -76,4 +76,4 @@ Karras, Tero, et al. "Elucidating the design space of diffusion-based generative
 
 Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional networks for biomedical image segmentation." Medical image computing and computer-assisted intervention–MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18. Springer International Publishing, 2015.
 
-python3 train.py --model dit --dataset cifar10 --epochs 40 --eval_frequency 10 --compute_fid --loss_type ddpm --output_dir ./output_dir_DDPM
+python3 train.py --model dit --dataset cifar10 --epochs 40 --eval_frequency 10 --compute_fid --loss_type ddpm --output_dir ./output_dir_DDPM --fid_samples=2000

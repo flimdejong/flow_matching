@@ -179,7 +179,7 @@ def eval_model(
                     def get_alpha_bar(t):
                         s = 0.008
                         alpha_bar = torch.cos(((t + s) / (1 + s)) * (math.pi / 2)) ** 2
-                        return alpha_bar
+                        return torch.clamp(alpha_bar, min=1e-6, max=0.9999)
                     
                     # In DDPM we have to make a NN (this case a DiT) predict the noise
                     # So we start from pure noise, then iteratively denoise
