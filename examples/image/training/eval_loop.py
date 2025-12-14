@@ -211,8 +211,9 @@ def eval_model(
 
                         # Final formula
                         x_t = 1/torch.sqrt(alpha) * (x_t - (beta/torch.sqrt(1-ab_curr)) * pred_noise) + torch.sqrt(beta)* z
-
-                    # Go from [-1,1] to [0,1] and scale
+                    
+                    # Clamp, go from [-1,1] to [0,1] and scale
+                    x_t = torch.clamp(x_t, -1, 1)
                     x_t = (x_t + 1) / 2
                     synthetic_samples = x_t * 255.0
             
